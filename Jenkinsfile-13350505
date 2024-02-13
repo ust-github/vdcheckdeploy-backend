@@ -1,0 +1,28 @@
+pipeline {
+    agent any
+    tools {
+        maven 'maven'
+    }
+    options {
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '5')
+        disableConcurrentBuilds()
+    }
+    stages {
+        stage('Build (phkbzp)') {
+            steps {
+                sh script: 'mvn clean ', label: 'dwtu5j'
+                sh script: 'mvn install -Dmaven.test.skip=true', label: 'rs0v11'
+            } //end steps
+        } // end stage Build
+        stage('Create Image (udkjn6)') {
+            steps {
+                script {
+                    withCredentials([usernameColonPassword(credentialsId: 'nexus-registry', variable: 'REG_CREDS')]) {
+                        sh 'buildah bud --no-cache --pull --force-rm --format docker --creds ${REG_CREDS}' + " -t registry.ustpace.com/docker-sandbox/vdcheckdeploy-backend:latest --iidfile iid ."
+                        sh 'buildah push --rm --creds ${REG_CREDS} $(cat iid) ' + " registry.ustpace.com/docker-sandbox/vdcheckdeploy-backend:latest"
+                    }
+                }
+            } //end steps
+        } // end stage Create Image
+    }
+}
