@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+    tools {
+        maven 'maven'
+    }
+    options {
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '5')
+        disableConcurrentBuilds()
+    }
+    stages {
+        stage ('Deploy (udkjn6)') {
+            steps {
+                sh script: '''
+ln -sf /usr/local/bin/helm3 /usr/local/bin/helm
+''', label: 'rlklcw'
+                sh script: 'helm package chart', label: 'ijhrf0'
+                script { sh script: 'sleep 0.005', label: '4j2evm'}
+                withCredentials([usernameColonPassword(credentialsId: 'nexus-registry', variable: 'USERNAME_PASSWORD')]) {
+                    sh '''
+          curl -s -u ${USERNAME_PASSWORD} --fail --upload-file vdcheckdeploy-backend-chart-0.1.0.tgz "https://registry.ustpace.com/repository/helm-sandbox/vdcheckdeploy-backend-chart-0.1.0.tgz"
+      '''
+                }// end step group
+                withCredentials([   usernamePassword(credentialsId: 'nexus-registry', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    sh script: 'helm repo add vdcheckdeploy-backend https://registry.ustpace.com/repository/helm-sandbox --username $USER --password $PASS', label: 'rvsu01'
+                }
+                sh script: 'helm repo update', label: 'mesfnb'
+                sh script: 'helm upgrade vdcheckdeploy-backend-deployment vdcheckdeploy-backend/vdcheckdeploy-backend-chart --install --values chart-values.yaml --namespace default --set ingress.hosts[0].host=vdcheckdeploy-backend-default.dagility.com', label: 'ixxrui'
+            } //end steps
+        } // end stage Deploy
+    }
+}
