@@ -1,0 +1,56 @@
+pipeline {
+  agent any
+  tools {
+    maven 'maven'
+  }
+  options {
+    buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '5')
+    disableConcurrentBuilds()
+  }
+  stages {
+    stage ('Build (phkbzp)') {
+      steps {
+        sh script: 'mvn clean ', label: 'dwtu5j'
+        sh script: 'mvn test ', label: '6v3qdc'
+        sh script: 'mvn install -Dmaven.test.skip=true', label: 'rs0v11'
+      } //end steps
+    } // end stage Build
+    stage ('Deploy (udkjn6)') {
+      steps {
+        script {
+		docker.withTool('docker'){
+		  docker.withRegistry('https://artifactory.dagility.com', 'cacebf1e-b806-43d7-a08e-0b32122840fd'){
+        
+            sh script: '''
+docker build -t artifactory.dagility.com/docker/vdcheckdeploy-backend:latest .
+''', label: 'facadb'
+            sh script: '''
+docker push artifactory.dagility.com/docker/vdcheckdeploy-backend:latest
+''', label: 'acbdfa'
+        		}
+			}
+	}
+script { sh script: 'sleep 0.005', label: 'fmw4o7'}
+
+        sh script: '''
+ln -sf /usr/local/bin/helm3 /usr/local/bin/helm
+''', label: 'rlklcw'
+        sh script: 'helm package chart', label: 'ijhrf0'
+        withCredentials([usernamePassword(credentialsId: 'cacebf1e-b806-43d7-a08e-0b32122840fd', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+
+        script {
+            sh script: '''
+curl -u$USER:$PASS -T vdcheckdeploy-backend-chart-0.1.0.tgz 'https://artifactory.dagility.com/artifactory/helm-local/vdcheckdeploy-backend-chart-0.1.0.tgz' 
+''', label: 'fdbbac'
+        } // end step group script
+script { sh script: 'sleep 0.005', label: '4j2evm'}
+} // end step group
+		withCredentials([   usernamePassword(credentialsId: 'cacebf1e-b806-43d7-a08e-0b32122840fd', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+        	sh script: 'helm repo add vdcheckdeploy-backend https://artifactory.dagility.com/artifactory/helm --username $USER --password $PASS', label: 'rvsu01'
+		}
+        sh script: 'helm repo update', label: 'mesfnb'
+        sh script: 'helm upgrade vdcheckdeploy-backend-deployment vdcheckdeploy-backend/vdcheckdeploy-backend-chart --install --values chart-values.yaml --namespace default --set ingress.hosts[0].host=vdcheckdeploy-backend-default.dagility.com', label: 'ixxrui'
+      } //end steps
+    } // end stage Deploy
+  }
+}
