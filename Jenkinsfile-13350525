@@ -24,7 +24,7 @@ ln -sf /usr/local/bin/helm3 /usr/local/bin/helm
                     sh script: 'helm repo add vdcheckdeploy-backend https://registry.ustpace.com/repository/helm-sandbox --username $USER --password $PASS', label: 'rvsu01'
                 }
                 sh script: 'helm repo update', label: 'mesfnb'
-                sh script: 'helm upgrade vdcheckdeploy-backend-deployment vdcheckdeploy-backend/vdcheckdeploy-backend-chart --install --values chart-values.yaml --namespace habitat-testttttttttttttttttttttttttttttttttttttttttttttttttttt --set ingress.hosts[0].host=vdcheckdeploy-backend-habitat-testttttttttttttttttttttttttttttttttttttttttttttttttttt.dagility.com', label: 'ixxrui'
+                sh script: 'helm upgrade vdcheckdeploy-backend-deployment vdcheckdeploy-backend/vdcheckdeploy-backend-chart --install --values chart-values.yaml --namespace default --set ingress.hosts[0].host=vdcheckdeploy-backend-default.dagility.com', label: 'ixxrui'
             } //end steps
         } // end stage Deploy
     }
